@@ -1,0 +1,13 @@
+{
+  "name": "Fléchettes",
+  "short_name": "Fléchettes",
+  "description": "Compteur de points pour parties de fléchettes 301/501",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1d27",
+  "theme_color": "#1a1d27",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

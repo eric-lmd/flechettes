@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#1a1d27"/>
+  
+  <!-- Dartboard rings -->
+  <circle cx="256" cy="256" r="220" fill="#111111"/>
+  <circle cx="256" cy="256" r="200" fill="#1a1a1a"/>
+  <circle cx="256" cy="256" r="160" fill="#cc2020"/>
+  <circle cx="256" cy="256" r="140" fill="#1a1a1a"/>
+  <circle cx="256" cy="256" r="100" fill="#10a040"/>
+  <circle cx="256" cy="256" r="80"  fill="#1a1a1a"/>
+  <circle cx="256" cy="256" r="40"  fill="#cc2020"/>
+  <circle cx="256" cy="256" r="22"  fill="#10a040"/>
+  <circle cx="256" cy="256" r="10"  fill="#cc2020"/>
+
+  <!-- Cross lines -->
+  <line x1="256" y1="36" x2="256" y2="476" stroke="#222" stroke-width="2"/>
+  <line x1="36"  y1="256" x2="476" y2="256" stroke="#222" stroke-width="2"/>
+
+  <!-- Dart -->
+  <g transform="rotate(-35, 256, 256) translate(60, -30)">
+    <!-- Dart body -->
+    <rect x="230" y="148" width="6" height="80" rx="3" fill="#f5c842"/>
+    <!-- Dart tip -->
+    <polygon points="233,148 233,128 236,120 239,128 239,148" fill="#e8e8e8"/>
+    <!-- Dart flights -->
+    <polygon points="233,228 218,260 233,248" fill="#f5c842" opacity="0.8"/>
+    <polygon points="239,228 254,260 239,248" fill="#e8a020" opacity="0.8"/>
+    <polygon points="233,248 233,268 236,258 239,268 239,248" fill="#f5c842"/>
+  </g>
+
+  <!-- Text FLÉCHETTES -->
+  <text x="256" y="490" text-anchor="middle" font-family="Arial Black, sans-serif"
+    font-size="36" font-weight="900" fill="#f5c842" letter-spacing="3">🎯</text>
+</svg>
