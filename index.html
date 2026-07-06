@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <meta name="theme-color" content="#1a1d27"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Fléchettes"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="logo.svg"/>
+  <title>Fléchettes</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: #1a1d27; font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; color: #eef0f8; overscroll-behavior: none; }
+    #app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+    button { font-family: inherit; cursor: pointer; border: none; }
+    input { font-family: inherit; }
+
+    /* ── Setup ── */
+    .setup { padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+    .logo-wrap { text-align: center; padding: 20px 0 8px; }
+    .logo-emoji { font-size: 52px; display: block; }
+    .app-title { font-size: 30px; font-weight: 900; letter-spacing: 6px; color: #f5c842; margin-top: 6px; text-transform: uppercase; }
+    .app-sub { font-size: 13px; color: #7a82a6; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+    .card { background: #242838; border-radius: 14px; padding: 16px 18px; }
+    .section-label { display: block; font-size: 11px; font-weight: 800; letter-spacing: 2px; color: #7a82a6; text-transform: uppercase; margin-bottom: 10px; }
+    .row { display: flex; gap: 10px; }
+    .mode-btn { flex: 1; padding: 12px 0; border-radius: 10px; border: 2px solid #333a55; background: transparent; color: #7a82a6; font-size: 16px; font-weight: 700; }
+    .mode-btn.active { background: #f5c842; border-color: #f5c842; color: #1a1d27; }
+    .name-input { width: 100%; background: #1a1d27; border: 2px solid #333a55; border-radius: 10px; padding: 12px 14px; color: #eef0f8; font-size: 16px; margin-bottom: 10px; outline: none; }
+    .name-input:last-child { margin-bottom: 0; }
+    .start-btn { width: 100%; padding: 18px 0; background: linear-gradient(135deg, #f5c842, #e8a020); color: #1a1d27; border-radius: 14px; font-size: 17px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+    .rules-btn { width: 100%; padding: 14px 0; background: transparent; color: #7a82a6; border: 2px solid #333a55; border-radius: 14px; font-size: 15px; font-weight: 700; }
+
+    /* ── Game ── */
+    .game { display: flex; flex-direction: column; flex: 1; padding-bottom: 12px; }
+    .game-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #2e3450; }
+    .back-btn { background: none; color: #7a82a6; font-size: 14px; font-weight: 600; }
+    .mode-tag { background: #f5c842; color: #1a1d27; border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: 800; letter-spacing: 1px; }
+    .icon-btns { display: flex; gap: 4px; }
+    .icon-btn { background: none; font-size: 22px; padding: 4px; }
+    .scores-row { display: flex; gap: 10px; padding: 14px 12px 0; }
+    .player-card { flex: 1; background: #242838; border-radius: 14px; padding: 12px 10px; border: 2px solid transparent; transition: border-color .2s, background .2s; min-width: 0; }
+    .player-card.active { border-color: #f5c842; background: #2a2e44; }
+    .player-card.winner { border-color: #4ecb71; background: #1f3028; }
+    .player-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 4px; }
+    .player-name { font-size: 12px; font-weight: 700; color: #7a82a6; text-transform: uppercase; letter-spacing: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .badge { font-size: 9px; font-weight: 800; color: #f5c842; letter-spacing: 1px; white-space: nowrap; }
+    .badge-win { font-size: 14px; }
+    .player-score { font-size: 42px; font-weight: 900; color: #eef0f8; line-height: 1.1; margin-bottom: 2px; }
+    .player-last { font-size: 12px; font-weight: 700; }
+    .bust-badge { font-size: 11px; font-weight: 900; color: #ff6b6b; letter-spacing: 2px; margin-top: 2px; }
+    .turn-banner { text-align: center; font-size: 15px; color: #7a82a6; padding: 10px 16px 0; }
+    .turn-name { color: #eef0f8; font-weight: 800; }
+
+    /* ── Keypad ── */
+    .keypad { padding: 12px 14px 0; margin-top: auto; }
+    .display-row { display: flex; align-items: center; background: #242838; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; }
+    .display-label { font-size: 13px; color: #7a82a6; font-weight: 600; letter-spacing: 1px; }
+    .display-val { font-size: 26px; font-weight: 900; color: #f5c842; flex: 1; text-align: right; letter-spacing: 2px; }
+    .key-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+    .key { padding: 16px 0; background: #242838; border-radius: 10px; color: #eef0f8; font-size: 20px; font-weight: 800; }
+    .key:active { background: #2f3550; }
+    .key.special { background: #2d3250; color: #f5c842; font-size: 13px; font-weight: 800; letter-spacing: 1px; }
+    .key.special.on { background: #f5c842; color: #1a1d27; }
+    .action-row { display: flex; gap: 10px; }
+    .delete-btn { flex: 0.4; padding: 16px 0; background: #2a1f2d; border-radius: 10px; color: #ff6b6b; font-size: 20px; font-weight: 700; }
+    .validate-btn { flex: 1; padding: 16px 0; background: linear-gradient(135deg, #f5c842, #e8a020); border-radius: 10px; color: #1a1d27; font-size: 17px; font-weight: 900; letter-spacing: 1px; }
+    .modifier-badge { text-align: center; font-size: 12px; font-weight: 800; color: #f5c842; letter-spacing: 2px; text-transform: uppercase; margin-top: 8px; }
+
+    /* ── Winner ── */
+    .winner-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; }
+    .winner-msg { font-size: 24px; font-weight: 900; color: #4ecb71; text-align: center; }
+
+    /* ── Modal ── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; display: flex; align-items: flex-end; }
+    .sheet { background: #242838; border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; margin: 0 auto; max-height: 88vh; display: flex; flex-direction: column; }
+    .sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 12px; border-bottom: 1px solid #2e3450; }
+    .sheet-title { font-size: 18px; font-weight: 800; color: #eef0f8; }
+    .close-x { background: none; color: #7a82a6; font-size: 18px; }
+    .sheet-body { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .zone-row { display: flex; align-items: center; gap: 12px; background: #2a2820; border: 1px solid #2e3450; border-radius: 10px; padding: 12px 14px; width: 100%; text-align: left; }
+    .zone-row.active { border-color: #f5c842; background: #2d3458; }
+    .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+    .zone-label { color: #eef0f8; font-size: 14px; font-weight: 700; }
+    .zone-detail { color: #7a82a6; font-size: 12px; margin-top: 2px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { background: #1a1d27; border: 1px solid #333a55; border-radius: 6px; padding: 4px 8px; font-size: 13px; font-weight: 700; color: #eef0f8; min-width: 30px; text-align: center; }
+    .rule-row { display: flex; gap: 12px; align-items: flex-start; background: #242838; border-radius: 10px; padding: 12px 14px; }
+    .rule-icon { font-size: 22px; flex-shrink: 0; line-height: 1.3; }
+    .rule-title { color: #f5c842; font-size: 13px; font-weight: 800; margin-bottom: 4px; }
+    .rule-text { color: #eef0f8; font-size: 13px; line-height: 1.5; }
+    .tip-box { background: #1f2a1f; border: 1px solid #2a4030; border-radius: 10px; padding: 12px 14px; }
+    .hist-player { margin-bottom: 20px; }
+    .hist-name { font-size: 13px; font-weight: 800; color: #f5c842; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .hist-row { display: flex; align-items: center; gap: 16px; padding: 6px 0; border-bottom: 1px solid #1e2236; font-size: 14px; }
+    .hist-round { color: #7a82a6; font-size: 12px; font-weight: 700; min-width: 28px; }
+    .hist-rem { color: #7a82a6; margin-left: auto; font-size: 13px; }
+    .muted { color: #7a82a6; }
+    .accent { color: #f5c842; font-weight: 800; }
+    .green { color: #4ecb71; font-weight: 800; }
+    .hidden { display: none !important; }
+    .dartboard-wrap { background: #111; border-radius: 14px; padding: 12px; }
+    .dartboard-hint { text-align: center; color: #7a82a6; font-size: 12px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const SECTORS = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+const ZONES = [
+  { label:'Simple (1–20)', detail:'Valeur de la zone (1 à 20)', dot:'#f0e8d0', hi:null },
+  { label:'Double (anneau ext.)', detail:'Valeur × 2 — max Double 20 = 40 pts', dot:'#ff6b6b', hi:null },
+  { label:'Triple (anneau int.)', detail:'Valeur × 3 — max Triple 20 = 60 pts', dot:'#4ecb71', hi:null },
+  { label:"Bull's Eye outer (vert)", detail:'25 points', dot:'#10a040', hi:25 },
+  { label:'Bull centre (rouge)', detail:'50 points', dot:'#cc2020', hi:50 },
+];
+const RULES = [
+  { icon:'🎯', title:'Objectif', text:'Partir de 301 ou 501 et atteindre exactement 0. Le premier à zéro gagne !' },
+  { icon:'🔄', title:'Chaque tour', text:'Un joueur lance 3 fléchettes par volée. Entrez le total et validez.' },
+  { icon:'💥', title:'Bust', text:'Si le score passe sous 0 ou tombe à 1 exactement, c\'est un BUST : le score reste inchangé.' },
+  { icon:'✕3', title:'Triple', text:'Anneau intérieur rouge/vert × 3. Triple 20 = 60 pts.' },
+  { icon:'✕2', title:'Double', text:'Anneau extérieur rouge/vert × 2. Double 20 = 40 pts.' },
+  { icon:'🏆', title:'Victoire', text:'Vous devez tomber exactement à 0.' },
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let state = {
+  screen: 'setup',
+  setupMode: 501, setupCount: 2,
+  setupNames: ['Joueur 1','Joueur 2','Joueur 3'],
+  mode: 501, players: [], current: 0,
+  input: '', modifier: 1, winner: null,
+  showHistory: false, showRules: false,
+  rulesHighlight: null,
+};
+
+function setState(patch) {
+  Object.assign(state, patch);
+  render();
+}
+
+// ── Dartboard SVG ──────────────────────────────────────────────────────────
+function makeDartboard(highlight) {
+  const cx=150,cy=150,r=140,n=SECTORS.length;
+  const step = 2*Math.PI/n;
+  const off = -Math.PI/2 - step/2;
+  const pt = (a,rad) => [cx+rad*Math.cos(a), cy+rad*Math.sin(a)];
+  const arc = (i,r1,r2) => {
+    const a1=off+i*step, a2=a1+step;
+    const [x1,y1]=pt(a1,r1),[x2,y2]=pt(a2,r1),[x3,y3]=pt(a2,r2),[x4,y4]=pt(a1,r2);
+    return `M${x1},${y1}A${r1},${r1},0,0,1,${x2},${y2}L${x3},${y3}A${r2},${r2},0,0,0,${x4},${y4}Z`;
+  };
+  const lp = (i) => { const a=off+i*step+step/2; return pt(a,r*0.88); };
+  const rBull=8,rBO=20,rTi=75,rTo=90,rDi=120,rDo=135;
+
+  let paths = `<circle cx="${cx}" cy="${cy}" r="${r+4}" fill="#111"/>`;
+  SECTORS.forEach((val,i) => {
+    const ev=i%2===0, hi=highlight===val;
+    paths += `<path d="${arc(i,rDo,r-2)}" fill="${hi?'#f5c842':(ev?'#1a1a1a':'#f0e8d0')}" stroke="#333" stroke-width=".5"/>`;
+    paths += `<path d="${arc(i,rTo,rDi)}" fill="${hi?'#f5c842':(ev?'#1a1a1a':'#f0e8d0')}" stroke="#333" stroke-width=".5"/>`;
+    paths += `<path d="${arc(i,rTi,rTo)}" fill="${hi?'#fff':(ev?'#cc2020':'#10a040')}" stroke="#222" stroke-width=".5"/>`;
+    paths += `<path d="${arc(i,rDi,rDo)}" fill="${hi?'#fff':(ev?'#cc2020':'#10a040')}" stroke="#222" stroke-width=".5"/>`;
+  });
+  paths += `<circle cx="${cx}" cy="${cy}" r="${rBO}" fill="${highlight===25?'#f5c842':'#10a040'}" stroke="#222" stroke-width="1"/>`;
+  paths += `<circle cx="${cx}" cy="${cy}" r="${rBull}" fill="${highlight===50?'#f5c842':'#cc2020'}" stroke="#222" stroke-width="1"/>`;
+  SECTORS.forEach((val,i) => {
+    const [lx,ly]=lp(i);
+    paths += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="bold" fill="${highlight===val?'#1a1d27':'#fff'}">${val}</text>`;
+  });
+  return `<svg viewBox="0 0 300 300" width="100%" style="display:block;max-width:280px;margin:0 auto">${paths}</svg>`;
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = state.screen === 'setup' ? renderSetup() : renderGame();
+  bindEvents();
+}
+
+function renderSetup() {
+  const { setupMode, setupCount, setupNames } = state;
+  let namesHTML = '';
+  for(let i=0;i<setupCount;i++) {
+    namesHTML += `<input class="name-input" data-name="${i}" value="${esc(setupNames[i])}" placeholder="Joueur ${i+1}" maxlength="12"/>`;
+  }
+  return `
+    <div class="setup">
+      <div class="logo-wrap">
+        <span class="logo-emoji">🎯</span>
+        <div class="app-title">FLÉCHETTES</div>
+        <div class="app-sub">Compteur de points</div>
+      </div>
+      <div class="card">
+        <span class="section-label">Mode de jeu</span>
+        <div class="row">
+          <button class="mode-btn ${setupMode===301?'active':''}" data-mode="301">301</button>
+          <button class="mode-btn ${setupMode===501?'active':''}" data-mode="501">501</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="section-label">Nombre de joueurs</span>
+        <div class="row">
+          <button class="mode-btn ${setupCount===2?'active':''}" data-count="2">2 joueurs</button>
+          <button class="mode-btn ${setupCount===3?'active':''}" data-count="3">3 joueurs</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="section-label">Noms des joueurs</span>
+        ${namesHTML}
+      </div>
+      <button class="start-btn" id="startBtn">COMMENCER LA PARTIE</button>
+      <button class="rules-btn" id="rulesBtn">📖 Règles du jeu & Zones</button>
+    </div>
+    ${state.showRules ? renderRulesModal() : ''}
+  `;
+}
+
+function renderGame() {
+  const { players, mode, current, winner, modifier, input, showHistory, showRules } = state;
+  const displayVal = (() => {
+    if (!input && modifier===1) return '—';
+    const m = modifier===2?'D×':modifier===3?'T×':'';
+    return m+(input||'?');
+  })();
+
+  let scores = players.map((p,i) => {
+    const rem = mode - p.score;
+    const last = p.history[p.history.length-1];
+    const lastHTML = last!==undefined
+      ? `<div class="player-last" style="color:${last<0?'#ff6b6b':'#f5c842'}">${last<0?'Bust':'+'+last}</div>` : '';
+    const bustHTML = p.busted ? `<div class="bust-badge">BUST!</div>` : '';
+    const isActive = i===current && !winner;
+    const isWinner = winner===p.id;
+    return `
+      <div class="player-card ${isActive?'active':''} ${isWinner?'winner':''}">
+        <div class="player-header">
+          <span class="player-name">${esc(p.name)}</span>
+          ${isActive&&!isWinner?'<span class="badge">▶ JOUE</span>':''}
+          ${isWinner?'<span class="badge-win">🏆</span>':''}
+        </div>
+        <div class="player-score">${rem}</div>
+        ${lastHTML}${bustHTML}
+      </div>`;
+  }).join('');
+
+  const mainContent = winner
+    ? `<div class="winner-section">
+        <div class="winner-msg">🏆 ${esc(players.find(p=>p.id===winner)?.name)} a gagné !</div>
+        <button class="start-btn" id="newGameBtn" style="width:200px">Nouvelle partie</button>
+       </div>`
+    : `<div class="keypad">
+        <div class="display-row">
+          <span class="display-label">Volée :</span>
+          <span class="display-val">${displayVal}</span>
+        </div>
+        <div class="key-grid">
+          ${['1','2','3','4','5','6','7','8','9','T','0','D'].map(k=>`
+            <button class="key ${(k==='T'||k==='D')?'special':''} ${(k==='T'&&modifier===3)||(k==='D'&&modifier===2)?'on':''}" data-key="${k}">
+              ${k==='T'?'Triple':k==='D'?'Double':k}
+            </button>`).join('')}
+        </div>
+        <div class="action-row">
+          <button class="delete-btn" id="deleteBtn">⌫</button>
+          <button class="validate-btn" id="validateBtn">✓ Valider</button>
+        </div>
+      </div>
+      ${modifier!==1?`<div class="modifier-badge">${modifier===2?'✕2 DOUBLE':'✕3 TRIPLE'} actif</div>`:''}`;
+
+  return `
+    <div class="game">
+      <div class="game-header">
+        <button class="back-btn" id="backBtn">← Menu</button>
+        <span class="mode-tag">${mode} pts</span>
+        <div class="icon-btns">
+          <button class="icon-btn" id="rulesBtn">📖</button>
+          <button class="icon-btn" id="histBtn">📋</button>
+        </div>
+      </div>
+      <div class="scores-row">${scores}</div>
+      ${!winner?`<div class="turn-banner">🎯 Au tour de <span class="turn-name">${esc(players[current]?.name)}</span></div>`:''}
+      ${mainContent}
+    </div>
+    ${showHistory ? renderHistoryModal() : ''}
+    ${showRules ? renderRulesModal() : ''}
+  `;
+}
+
+function renderRulesModal() {
+  const hi = state.rulesHighlight;
+  const zonesHTML = ZONES.map((z,i) => `
+    <button class="zone-row ${hi===z.hi&&z.hi!==null?'active':''}" data-zoneidx="${i}">
+      <div class="dot" style="background:${z.dot}"></div>
+      <div><div class="zone-label">${z.label}</div><div class="zone-detail">${z.detail}</div></div>
+    </button>`).join('');
+  const chipsHTML = SECTORS.map(v=>`<span class="chip">${v}</span>`).join('');
+  const rulesHTML = RULES.map(r=>`
+    <div class="rule-row">
+      <span class="rule-icon">${r.icon}</span>
+      <div><div class="rule-title">${r.title}</div><div class="rule-text">${r.text}</div></div>
+    </div>`).join('');
+  return `
+    <div class="overlay" id="rulesOverlay">
+      <div class="sheet" style="max-height:92vh">
+        <div class="sheet-header">
+          <span class="sheet-title">📖 Règles & Zones</span>
+          <button class="close-x" id="closeRules">✕</button>
+        </div>
+        <div class="sheet-body">
+          <div class="dartboard-wrap">${makeDartboard(hi)}</div>
+          <div class="dartboard-hint">Appuyez sur une zone pour la voir sur la cible</div>
+          <span class="section-label">Valeur des zones</span>
+          ${zonesHTML}
+          <div class="card">
+            <div class="zone-label" style="margin-bottom:8px">Toutes les valeurs simples</div>
+            <div class="chips">${chipsHTML}</div>
+            <div style="color:#7a82a6;font-size:11px;margin-top:8px">
+              Max triple : 3×20 = <span class="accent">60 pts</span> · Max volée : 3×T20 = <span class="accent">180 pts</span>
+            </div>
+          </div>
+          <span class="section-label">Règles du jeu</span>
+          ${rulesHTML}
+          <div class="tip-box">
+            <div class="rule-title" style="color:#4ecb71;margin-bottom:6px">💡 Astuce</div>
+            <div class="rule-text">Appuyez sur <span class="accent">D</span> pour ×2 (Double), <span class="accent">T</span> pour ×3 (Triple).</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderHistoryModal() {
+  const { players, mode } = state;
+  const content = players.map(p => {
+    const rows = p.history.length===0
+      ? '<div class="muted" style="font-size:13px;font-style:italic">Aucune volée</div>'
+      : p.history.map((h,i) => {
+          const cum = p.history.slice(0,i+1).reduce((a,b)=>a+(b>0?b:0),0);
+          return `<div class="hist-row">
+            <span class="hist-round">V${i+1}</span>
+            <span style="color:${h<0?'#ff6b6b':'#f5c842'};font-weight:700">${h<0?'Bust':'+'+h}</span>
+            <span class="hist-rem">→ ${Math.max(0,mode-cum)}</span>
+          </div>`;
+        }).join('');
+    return `<div class="hist-player"><div class="hist-name">${esc(p.name)}</div>${rows}</div>`;
+  }).join('');
+  return `
+    <div class="overlay" id="histOverlay">
+      <div class="sheet">
+        <div class="sheet-header">
+          <span class="sheet-title">Historique</span>
+          <button class="close-x" id="closeHist">✕</button>
+        </div>
+        <div class="sheet-body">${content}</div>
+      </div>
+    </div>`;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Events ─────────────────────────────────────────────────────────────────
+function bindEvents() {
+  const on = (id, ev, fn) => { const el=document.getElementById(id); if(el) el.addEventListener(ev, fn); };
+  const all = (sel, ev, fn) => document.querySelectorAll(sel).forEach(el=>el.addEventListener(ev,fn));
+
+  // Setup
+  all('[data-mode]','click', e => { setState({setupMode:parseInt(e.currentTarget.dataset.mode)}); saveConfig(); });
+  all('[data-count]','click', e => { setState({setupCount:parseInt(e.currentTarget.dataset.count)}); saveConfig(); });
+  all('[data-name]','focus', e => {
+    const el = e.currentTarget;
+    // iOS Safari requires a small delay for select() to work
+    setTimeout(() => { el.select(); }, 50);
+  });
+  all('[data-name]','touchend', e => {
+    const el = e.currentTarget;
+    setTimeout(() => { el.select(); }, 50);
+  });
+  all('[data-name]','input', e => {
+    const i=parseInt(e.currentTarget.dataset.name);
+    const names=[...state.setupNames]; names[i]=e.currentTarget.value; state.setupNames=names;
+    saveConfig();
+  });
+
+  on('startBtn','click', () => {
+    const { setupMode, setupCount, setupNames } = state;
+    const players = setupNames.slice(0,setupCount).map((n,i)=>({id:i,name:n||`Joueur ${i+1}`,score:0,history:[],busted:false}));
+    setState({ screen:'game', mode:setupMode, players, current:0, input:'', modifier:1, winner:null, showHistory:false, showRules:false });
+  });
+
+  // Rules
+  on('rulesBtn','click', () => setState({showRules:true, rulesHighlight:null}));
+  on('closeRules','click', () => setState({showRules:false}));
+  all('[data-zoneidx]','click', e => {
+    const z = ZONES[parseInt(e.currentTarget.dataset.zoneidx)];
+    setState({rulesHighlight: state.rulesHighlight===z.hi ? null : z.hi});
+  });
+  on('rulesOverlay','click', e => { if(e.target.id==='rulesOverlay') setState({showRules:false}); });
+
+  // History
+  on('histBtn','click', () => setState({showHistory:true}));
+  on('closeHist','click', () => setState({showHistory:false}));
+  on('histOverlay','click', e => { if(e.target.id==='histOverlay') setState({showHistory:false}); });
+
+  // Game
+  on('backBtn','click', () => setState({screen:'setup', showRules:false, showHistory:false}));
+  on('newGameBtn','click', () => setState({screen:'setup', showRules:false, showHistory:false}));
+  on('deleteBtn','click', () => {
+    if(state.input.length===0) setState({modifier:1});
+    else setState({input:state.input.slice(0,-1)});
+  });
+  on('validateBtn','click', validate);
+
+  all('[data-key]','click', e => {
+    const k = e.currentTarget.dataset.key;
+    if(k==='D') { setState({modifier:state.modifier===2?1:2}); return; }
+    if(k==='T') { setState({modifier:state.modifier===3?1:3}); return; }
+    if(state.input.length>=3) return;
+    setState({input:state.input+k});
+  });
+}
+
+function validate() {
+  const { input, modifier, current, mode, players } = state;
+  if(!input) return;
+  const raw = parseInt(input,10);
+  if(isNaN(raw)) return;
+  const points = raw * modifier;
+  if(points>180) return;
+
+  const updated = players.map((p,i) => {
+    if(i!==current) return p;
+    const p2 = {...p};
+    const remaining = mode - p.score;
+    if(points>remaining || remaining-points===1) {
+      p2.history=[...p.history, -points]; p2.busted=true;
+    } else {
+      p2.score+=points; p2.history=[...p.history, points]; p2.busted=false;
+    }
+    return p2;
+  });
+
+  const newWinner = updated.find(p=>p.score===mode);
+  setState({
+    players: updated,
+    winner: newWinner ? newWinner.id : null,
+    input: '',
+    modifier: 1,
+    current: newWinner ? current : (current+1)%players.length,
+  });
+}
+
+// ── Persistence ────────────────────────────────────────────────────────────
+function saveConfig() {
+  try {
+    localStorage.setItem('flechettes-config', JSON.stringify({
+      setupMode: state.setupMode,
+      setupCount: state.setupCount,
+      setupNames: state.setupNames,
+    }));
+  } catch(e) {}
+}
+
+function loadConfig() {
+  try {
+    const saved = localStorage.getItem('flechettes-config');
+    if(saved) {
+      const c = JSON.parse(saved);
+      state.setupMode  = c.setupMode  || 501;
+      state.setupCount = c.setupCount || 2;
+      state.setupNames = c.setupNames || ['Joueur 1','Joueur 2','Joueur 3'];
+    }
+  } catch(e) {}
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+loadConfig();
+render();
+</script>
+</body>
+</html>
